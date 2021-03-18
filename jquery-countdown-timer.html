@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>Page Title</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="">
+<style>
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    (function($){
+        let bankHolidaysData
+        // Bank holidays for England and Wales
+        let england
+        // An array of bank holidays
+        let bankHolidays = []
+        //todays date
+        let todaysdateString = {};
+
+        // A boolean specifying whether or not a date is a holiday
+        let isHoliday = false
+
+        // Bool for finding 4 days in the past
+        let foundFour = false
+        let fourDays
+
+        // Used to subtract the dates
+        let counter = 1.
+        // Used as a index for number of days passed
+        let workingDays = 0
+        let oneDay = 24 * 60 * 60 * 1000;
+
+        // Used to format our dates to match that of gov.uk
+        let startDateY, startDateM, startDateD, fourdaysY, fourDaysM, fourDaysD, startDateStr, fourDaysStr
+
+        // Get the current UK bank holidays - We use the Gov.UK API to account for substitute days
+        fetch('https://www.gov.uk/bank-holidays.json')
+            .then(blob => blob.json())
+            // Send the data to getBankHolidays
+            .then(data => getBankHolidays(data, bankHolidays))
+            // log any errors for the IT monkeys
+            .catch(err => {console.log(err)});
+
+
+        function getBankHolidays(data) {
+            // Parse the data
+            bankHolidaysData = data
+            // Capture the events from the API
+            england = bankHolidaysData["england-and-wales"].events
+
+            // We need to add leading zeros where a day or month is represented by a single number
+            zeroPad = function(num, pad) {
+            return ((Math.pow(10, pad) + num) + '').slice(1);
+            };
+
+            // Add individual dates to bankHolidays array
+            for (let index = 0, length = england.length; index < length; index ++) {
+                bankHolidays.push(england[index].date)
+            }
+
+            // Instantiate a date object from the dateString variable 
+            var startDate = new Date();
+            // Get the day of a week as a number, 0 Sunday
+            var dayOfWeek = startDate.getDay();
+
+            startDateY = startDate.getFullYear()
+            startDateM = zeroPad(startDate.getMonth() + 1, 2)
+            startDateD = zeroPad(startDate.getDate(), 2)
+
+            var dateString =  startDateY + '-' + startDateM + '-' + startDateD
+            
+            todaysdateString.string = dateString;
+        }
+
+      var date    = new Date(),
+          month   = date.getMonth();
+          day     = date.getDate(),
+          weekDay = date.getDay(),
+          hours   = {
+            start: new Date(date.getFullYear(), month, day),
+            end: new Date(date.getFullYear(), month, day)
+          };
+       // alert(weekDay);
+      // If it's Monday - Friday
+      if(weekDay >= 1 && weekDay <= 5){
+    
+        // Start at 0am, end at 9pm
+        hours.start.setHours(0);
+        hours.end.setHours(14);
+        
+      } else {
+            $('.countdown').hide();
+            $('.nextday').css("display", "block");
+     }
+
+        function countDown(){
+            if(weekDay >= 1 && weekDay <= 5 && bankHolidays.includes(todaysdateString.string) == false){
+                
+                var date         = new Date(),
+                countHours   = ('0' + (hours.end.getHours() - date.getHours())).substr(-2),
+                countMinutes = ('0' + (59 - date.getMinutes())).substr(-2),
+                countSeconds = ('0' + (59 - date.getSeconds())).substr(-2);
+        
+            } else {
+                $('.countdown').hide();
+            }
+
+            if(countHours < 0){      
+                $('.countdown').hide();
+                clearInterval(timer);
+            } else {          
+                $('.countdown .hours').text(countHours);
+                $('.countdown .minutes').text(countMinutes);
+                $('.countdown .seconds').html(countSeconds);
+                $('.navUser-item--countdown').addClass("is-active");
+            }
+            
+        }
+      $(function(){
+        timer = setInterval(function(){
+            // console.log('running');
+          countDown();
+        }, 1000);
+      });
+    })(jQuery);
+    </script>
+<body>
+
+    
+<div class="countdown  navUser-action" href="/delivery-information/">
+    <div id="countdown">
+        <div class="countdown-top">ORDER IN THE NEXT
+            <span class="hours"></span> :
+            <span class="minutes"></span> :
+            <span class="seconds"></span>
+        </div>
+        <div class="">FOR NEXT WORKING DAY DELIVERY</div>
+    </div>
+</div>
+
+</body>
+</html>
+        
